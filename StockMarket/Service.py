@@ -17,6 +17,7 @@ class ServiceClass:
         self.state = "sample_state"
         self.response_data = {}
         
+        
 
     
     async def  generateLink(self,user):
@@ -47,23 +48,25 @@ class ServiceClass:
     def getLiveData(self):
         return self.response_data
   
-    def startliveData(self,access_token,searchTicker,type):
+    def startliveData(self,access_token,symbols):
         data_type = "SymbolUpdate"
+        
             
-                
-        symbols = [f'NSE:{searchTicker}-{type}']
+        
         
         def onmessage(message):
-            # print(self.response_data)
-            if self.response_data is not None and searchTicker in self.response_data:
-                if('code' not in message):
-                    self.response_data[searchTicker].append(message)
-            else:
+            if "symbol" in message:
+                ticker=message["symbol"].split(":")[1].split("-")[0]
+                # print(ticker)
+                if self.response_data is not None and ticker in self.response_data:
+                    if('code' not in message): 
+                        self.response_data[ticker].append(message)
+                else:
                 
-                if('code' not in message):
+                    if('code' not in message):
 
-                    self.response_data[searchTicker] = [message]
-                # self.response_data[searchTicker]=self.response_data[searchTicker]
+                        self.response_data[ticker] = [message]
+                # self.response_data[ticker]=self.response_data[ticker]
 
             # fyers.unsubscribe(symbols=[f'NSE:{searchTicker}-INDEX'], data_type="SymbolUpdate")
 

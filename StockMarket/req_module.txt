@@ -4,3 +4,4 @@ pip install fyers_apiv2 # if v3 will not work then try to install v2
 
 pip install cors
 pip install flask[async]
+import logging
