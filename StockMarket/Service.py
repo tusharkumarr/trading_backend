@@ -10,8 +10,8 @@ class ServiceClass:
     
     
     def __init__(self):
-        self.client_id = "120MCV67H0-100"
-        self.secret_key = "YIWKKI1CRJ"
+        self.client_id = "KLOTU3GDY4-100"
+        self.secret_key = "85XIIXI8CD"
         self.redirect_uri = "https://www.google.com/"
         self.response_type = "code"
         self.state = "sample_state"
@@ -48,13 +48,18 @@ class ServiceClass:
         return self.response_data
   
     def startliveData(self,access_token,searchTicker,type):
+        data_type = "SymbolUpdate"
+            
+                
+        symbols = [f'NSE:{searchTicker}-{type}']
         
         def onmessage(message):
-            print(self.response_data)
+            # print(self.response_data)
             if self.response_data is not None and searchTicker in self.response_data:
                 if('code' not in message):
                     self.response_data[searchTicker].append(message)
             else:
+                
                 if('code' not in message):
 
                     self.response_data[searchTicker] = [message]
@@ -71,15 +76,14 @@ class ServiceClass:
 
         def onclose(message):
          print("Connection closed:", message)
+         fyers.subscribe(symbols=symbols, data_type=data_type)
+         
   
 
 
         def onopen():
 
-            data_type = "SymbolUpdate"
             
-                
-            symbols = [f'NSE:{searchTicker}-{type}']
           
             # print(symbols)
             
