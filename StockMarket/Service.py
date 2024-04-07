@@ -107,6 +107,23 @@ class ServiceClass:
         )
 
         fyers.connect()
+    
+    def get_historicalData(self,access_token,symbol,resolution,date_format,range_from,range_to):
+        
+        fyers = fyersModel.FyersModel(client_id=self.client_id, is_async=False, token=access_token, log_path="")
+
+        data = {
+            "symbol":symbol,
+            "resolution":resolution,
+            "date_format":date_format,
+            "range_from":range_from,
+            "range_to":range_to,
+            "cont_flag":"1"
+        }
+
+        response = fyers.history(data=data)
+        return response
+
        
         
 

@@ -80,13 +80,24 @@ def getLiveData():
     
     return jsonify(service.getLiveData()[searchTicker])
 
-@app.route('/stocks-with-given-rsi', methods=['GET'])
-def getLiveData():
+@app.route('/historicalData', methods=['GET'])
+def getHistoryData():
     global liveServerStarted
+    time_frame=''
     accessToken = request.args.get('accessToken')
     searchTicker=request.args.get('searchTicker')
+    time_frame=request.args.get('time_frame')
+    range_from=request.args.get('startDate')
+    range_to=request.args.get('endDate')
     
-    return jsonify(service.getLiveData()[searchTicker])
+    print(searchTicker,time_frame,range_from,range_to)
+    time_frame_dict = {"5 seconds": "5S","10 seconds": "10S","15 seconds": "15S","30 seconds": "30S","45 seconds": "45S","1 minute": "1","2 minute": "2","3 minute": "3","5 minute": "5","10 minute": "10","15 minute": "15", "20 minute": "20","30 minute": "30","60 minute": "60","120 minute": "120","240 minute": "240","1 Day":"D"}
+    if(searchTicker=="NIFTY50" or searchTicker=="NIFTYBANK"):
+        return service.get_historicalData(accessToken,f'NSE:{searchTicker}-INDEX',time_frame_dict[time_frame],"1",range_from,range_to)
+    else:
+        return service.get_historicalData(accessToken,f'NSE:{searchTicker}-EQ',time_frame_dict[time_frame],"1",range_from,range_to)
+    
+
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
