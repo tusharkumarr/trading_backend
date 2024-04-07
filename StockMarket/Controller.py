@@ -80,6 +80,14 @@ def getLiveData():
     
     return jsonify(service.getLiveData()[searchTicker])
 
+@app.route('/stocks-with-given-rsi', methods=['GET'])
+def getLiveData():
+    global liveServerStarted
+    accessToken = request.args.get('accessToken')
+    searchTicker=request.args.get('searchTicker')
+    
+    return jsonify(service.getLiveData()[searchTicker])
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 print("Server Started on port http://127.0.0.1:5000") 
