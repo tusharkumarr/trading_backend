@@ -4,6 +4,7 @@ from fyers_apiv3 import fyersModel
 from datetime import datetime
 from fyers_apiv3.FyersWebsocket import data_ws
 import asyncio
+import numpy as np
 
 class ServiceClass:
     response_data = {"":[]}
@@ -51,13 +52,14 @@ class ServiceClass:
     def startliveData(self,access_token,symbols):
         data_type = "SymbolUpdate"
         
-            
-        
-        
         def onmessage(message):
             if "symbol" in message:
-                ticker=message["symbol"].split(":")[1].split("-")[0]
-                # print(ticker)
+                if(message["symbol"].endswith("-EQ")):
+                    ticker=message["symbol"].split(":")[1].split("-EQ")[0]
+                else:
+                    ticker=message["symbol"].split(":")[1].split("-INDEX")[0]
+
+                
                 if self.response_data is not None and ticker in self.response_data:
                     if('code' not in message): 
                         self.response_data[ticker].append(message)
@@ -123,7 +125,42 @@ class ServiceClass:
 
         response = fyers.history(data=data)
         return response
+    
+    def get_close_price(self,response):
+        close_price_temp = []
+        
+        for i in response.get('candles', []):
+            
+            close_price_temp.append(i[4])
+        
+    
+        return close_price_temp
+    
+    def calculate_rsi(self,closing_prices, window=14):
+        deltas = np.diff(closing_prices)
+        seed = deltas[:window+1]
+        up = seed[seed >= 0].sum() / window
+        down = -seed[seed < 0].sum() / window
+        rs = up / down
+        rsi = np.zeros_like(closing_prices)
+        rsi[:window] = 100. - 100. / (1. + rs)
 
+        for i in range(window, len(closing_prices)):
+            delta = deltas[i - 1]
+            if delta > 0:
+                upval = delta
+                downval = 0.
+            else:
+                upval = 0.
+                downval = -delta
+        
+            up = (up * (window - 1) + upval) / window
+            down = (down * (window - 1) + downval) / window
+
+            rs = up / down
+            rsi[i] = 100. - 100. / (1. + rs)
+
+        return rsi
        
         
 
