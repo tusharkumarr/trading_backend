@@ -5,10 +5,12 @@ from datetime import datetime
 from fyers_apiv3.FyersWebsocket import data_ws
 import asyncio
 import numpy as np
+import datetime
 
 class ServiceClass:
     response_data = {"":[]}
-    
+    interadayHistoryDataMinute={"":[]}
+  
     
     def __init__(self):
         self.client_id = "KLOTU3GDY4-100"
@@ -17,6 +19,8 @@ class ServiceClass:
         self.response_type = "code"
         self.state = "sample_state"
         self.response_data = {}
+        self.interadayHistoryDataMinute={}
+       
         
         
 
@@ -30,6 +34,7 @@ class ServiceClass:
         )
 
         return session.generate_authcode()
+    
     async def getAccessCode(self,auth_code):
         session = accessToken.SessionModel(
         client_id=self.client_id,
@@ -48,6 +53,8 @@ class ServiceClass:
         return response
     def getLiveData(self):
         return self.response_data
+    def getHistoryData_in_minute(self):
+        return self.interadayHistoryDataMinute
   
     def startliveData(self,access_token,symbols):
         data_type = "SymbolUpdate"
@@ -56,6 +63,7 @@ class ServiceClass:
             if "symbol" in message:
                 if(message["symbol"].endswith("-EQ")):
                     ticker=message["symbol"].split(":")[1].split("-EQ")[0]
+                    
                 else:
                     ticker=message["symbol"].split(":")[1].split("-INDEX")[0]
 
@@ -63,11 +71,24 @@ class ServiceClass:
                 if self.response_data is not None and ticker in self.response_data:
                     if('code' not in message): 
                         self.response_data[ticker].append(message)
+                        datetime_obj = datetime.datetime.fromtimestamp(message['exch_feed_time'])
+                        
+                        datetime_obj_LastRec=datetime.datetime.fromtimestamp(self.interadayHistoryDataMinute[ticker][len(self.interadayHistoryDataMinute[ticker])-1]['exch_feed_time'])
+                        
+                        
+                        min=datetime_obj.minute
+                        if(datetime_obj_LastRec.minute!=min):
+                            
+                            self.interadayHistoryDataMinute[ticker].append(message)
+
                 else:
                 
                     if('code' not in message):
-
                         self.response_data[ticker] = [message]
+                        self.interadayHistoryDataMinute[ticker]=[message]
+                        
+                            
+                        
                 # self.response_data[ticker]=self.response_data[ticker]
 
             # fyers.unsubscribe(symbols=[f'NSE:{searchTicker}-INDEX'], data_type="SymbolUpdate")
@@ -137,10 +158,17 @@ class ServiceClass:
         return close_price_temp
     
     def calculate_rsi(self,closing_prices, window=14):
+        rsi=[]
+       
+        closing_prices=np.array(closing_prices)
+        
         deltas = np.diff(closing_prices)
         seed = deltas[:window+1]
         up = seed[seed >= 0].sum() / window
         down = -seed[seed < 0].sum() / window
+        if(up==0 or down==0):
+            return []
+            
         rs = up / down
         rsi = np.zeros_like(closing_prices)
         rsi[:window] = 100. - 100. / (1. + rs)
@@ -160,7 +188,7 @@ class ServiceClass:
             rs = up / down
             rsi[i] = 100. - 100. / (1. + rs)
 
-        return rsi
+        return rsi.tolist()
        
         
 
