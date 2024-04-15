@@ -14,7 +14,8 @@ from Trade import ExecuteTrade
 import traceback
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="https://8gtlqbzg-3000.inc1.devtunnels.ms")
+# CORS(app)
 service=ServiceClass()
 executeTradeService=ExecuteTrade()
 
@@ -203,7 +204,7 @@ def get_InteradayHistoryDataMinute():
         global liveServerStarted
         accessToken = request.args.get('accessToken')
         searchTicker=request.args.get('searchTicker')
-        print(searchTicker)
+        # print(searchTicker)
         if(searchTicker=='M'):
             searchTicker="M&M"
     
@@ -215,7 +216,7 @@ def get_InteradayHistoryDataMinute():
         current_ltp=service.getLiveData()[searchTicker][-1]['ltp']
         
         close_price.append(current_ltp)
-        print(close_price)
+        # print(close_price)
         rsi_List=(service.calculate_rsi(close_price))
 
        # Corrected code snippet

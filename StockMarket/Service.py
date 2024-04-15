@@ -14,8 +14,10 @@ class ServiceClass:
   
     
     def __init__(self):
-        self.client_id = "KLOTU3GDY4-100"
-        self.secret_key = "85XIIXI8CD"
+        self.client_id = "KLOTU3GDY4-100"#tushar
+        # self.client_id ="U2K5ZXGCCS-100" #SAMAR
+        self.secret_key = "85XIIXI8CD" #TUSHAR
+        # self.secret_key = "1JUDGO30RE" #samar
         self.redirect_uri = "https://www.google.com/"
         self.response_type = "code"
         self.state = "sample_state"
