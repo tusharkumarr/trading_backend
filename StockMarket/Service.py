@@ -10,6 +10,7 @@ import datetime
 class ServiceClass:
     response_data = {"":[]}
     interadayHistoryDataMinute={"":[]}
+    liveRSI={"":[]}
   
     
     def __init__(self):
@@ -20,6 +21,7 @@ class ServiceClass:
         self.state = "sample_state"
         self.response_data = {}
         self.interadayHistoryDataMinute={}
+        self.liveRSI={}
        
         
         
@@ -57,35 +59,36 @@ class ServiceClass:
         return self.interadayHistoryDataMinute
   
     def startliveData(self,access_token,symbols):
-        data_type = "SymbolUpdate"
+        try:
+            data_type = "SymbolUpdate"
         
-        def onmessage(message):
-            if "symbol" in message:
-                if(message["symbol"].endswith("-EQ")):
-                    ticker=message["symbol"].split(":")[1].split("-EQ")[0]
+            def onmessage(message):
+                if "symbol" in message:
+                    if(message["symbol"].endswith("-EQ")):
+                        ticker=message["symbol"].split(":")[1].split("-EQ")[0]
                     
-                else:
-                    ticker=message["symbol"].split(":")[1].split("-INDEX")[0]
+                    else:
+                        ticker=message["symbol"].split(":")[1].split("-INDEX")[0]
 
                 
-                if self.response_data is not None and ticker in self.response_data:
-                    if('code' not in message): 
-                        self.response_data[ticker].append(message)
-                        datetime_obj = datetime.datetime.fromtimestamp(message['exch_feed_time'])
+                    if self.response_data is not None and ticker in self.response_data:
+                        if('code' not in message): 
+                            self.response_data[ticker].append(message)
+                            datetime_obj = datetime.datetime.fromtimestamp(message['exch_feed_time'])
                         
-                        datetime_obj_LastRec=datetime.datetime.fromtimestamp(self.interadayHistoryDataMinute[ticker][len(self.interadayHistoryDataMinute[ticker])-1]['exch_feed_time'])
+                            datetime_obj_LastRec=datetime.datetime.fromtimestamp(self.interadayHistoryDataMinute[ticker][len(self.interadayHistoryDataMinute[ticker])-1]['exch_feed_time'])
                         
                         
-                        min=datetime_obj.minute
-                        if(datetime_obj_LastRec.minute!=min):
+                            min=datetime_obj.minute
+                            if(datetime_obj_LastRec.minute!=min):
                             
-                            self.interadayHistoryDataMinute[ticker].append(message)
+                                self.interadayHistoryDataMinute[ticker].append(message)
 
-                else:
+                    else:
                 
-                    if('code' not in message):
-                        self.response_data[ticker] = [message]
-                        self.interadayHistoryDataMinute[ticker]=[message]
+                        if('code' not in message):
+                            self.response_data[ticker] = [message]
+                            self.interadayHistoryDataMinute[ticker]=[message]
                         
                             
                         
@@ -95,41 +98,44 @@ class ServiceClass:
 
 
 
-        def onerror(message):
+            def onerror(message):
 
-            print("Error:", message)
+                print("Error:", message)
 
 
-        def onclose(message):
-         print("Connection closed:", message)
-         fyers.subscribe(symbols=symbols, data_type=data_type)
+            def onclose(message):
+                print("Connection closed:", message)
+                # fyers.subscribe(symbols=symbols, data_type=data_type)
          
   
 
 
-        def onopen():
+            def onopen():
 
             
           
             # print(symbols)
             
-            fyers.subscribe(symbols=symbols, data_type=data_type)
-            fyers.keep_running()
+                fyers.subscribe(symbols=symbols, data_type=data_type)
+                fyers.keep_running()
 
 
-        fyers = data_ws.FyersDataSocket(
-            access_token=access_token,       # Access token in the format "appid:accesstoken"
-            log_path="",                     # Path to save logs. Leave empty to auto-create logs in the current directory.
-            litemode=False,                  # Lite mode disabled. Set to True if you want a lite response.
-            write_to_file=False,              # Save response in a log file instead of printing it.
-            reconnect=True,                  # Enable auto-reconnection to WebSocket on disconnection.
-            on_connect=onopen,               # Callback function to subscribe to data upon connection.
-            on_close=onclose,                # Callback function to handle WebSocket connection close events.
-            on_error=onerror,                # Callback function to handle WebSocket errors.
-            on_message=onmessage             # Callback function to handle incoming messages from the WebSocket.
-        )
+            fyers = data_ws.FyersDataSocket(
+                access_token=access_token,       # Access token in the format "appid:accesstoken"
+                log_path="",                     # Path to save logs. Leave empty to auto-create logs in the current directory.
+                litemode=False,                  # Lite mode disabled. Set to True if you want a lite response.
+                write_to_file=False,              # Save response in a log file instead of printing it.
+                reconnect=True,                  # Enable auto-reconnection to WebSocket on disconnection.
+                on_connect=onopen,               # Callback function to subscribe to data upon connection.
+                on_close=onclose,                # Callback function to handle WebSocket connection close events.
+                on_error=onerror,                # Callback function to handle WebSocket errors.
+                on_message=onmessage             # Callback function to handle incoming messages from the WebSocket.
+            )
 
-        fyers.connect()
+            fyers.connect()
+        except Exception as e:
+            print("error :", e)
+        
     
     def get_historicalData(self,access_token,symbol,resolution,date_format,range_from,range_to):
         
@@ -189,7 +195,8 @@ class ServiceClass:
             rsi[i] = 100. - 100. / (1. + rs)
 
         return rsi.tolist()
-       
+
+
         
 
 

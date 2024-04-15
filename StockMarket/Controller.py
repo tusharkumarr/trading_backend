@@ -178,7 +178,7 @@ def filterStocks():
             if(len(service.calculate_rsi(close_price))==0):
                 continue
             temp=(service.calculate_rsi(close_price))
-            temp=temp.tolist()
+            # temp=temp.tolist()
             if(len(temp)>0):
 
                 rsi.append(temp[len(temp)-1]),
@@ -230,9 +230,6 @@ def get_InteradayHistoryDataMinute():
                 if rsi_List[-1] >= 75 and rsi_List[-1] <= 85:
                     executeTradeService.executeTrade(searchTicker, 50, '', current_ltp)
 
-
-
-
         return jsonify(rsi_List)
     except Exception as e:
     # Code to handle the specific exception (ZeroDivisionError in this case)
@@ -247,6 +244,72 @@ def get_InteradayHistoryDataMinute():
 @app.route('/getAllTrade', methods=['GET'])
 def getAllTrade():
     return executeTradeService.getAllTrade()
+
+@app.route('/getAllRSI', methods=['GET'])
+def getAllRSI():
+
+    selected_columns = ['Symbol']
+    df = pd.read_excel('MCAP31122023_0.xlsx', usecols=selected_columns)
+
+    df = df.dropna()
+    company_List=[]
+    for index, row in df.iterrows():
+        company_List.append(row['Symbol'])
+
+    rsi={}
+    company_List1=company_List[:702]#2190
+    response=service.getHistoryData_in_minute()
+
+    for i in company_List1:
+        close_price=[]
+        if(i in response):
+            for j in response[i]:
+                close_price.append(j['ltp'])
+            # print(service.getLiveData()[str(i)])
+       
+       
+            current_ltp=service.getLiveData()[str(i)][-1]['ltp']
+        
+            close_price.append(current_ltp)
+            rsi_List=(service.calculate_rsi(close_price))
+            rsi[i]=rsi_List
+    return jsonify({'rsi':rsi})
+
+@app.route('/fillterLiveStocks', methods=['GET'])
+def filterLiveStocks():
+    response=service.getHistoryData_in_minute()
+    close_price=[]
+    selected_columns = ['Symbol']
+    df = pd.read_excel('MCAP31122023_0.xlsx', usecols=selected_columns)
+
+    df = df.dropna()
+    company_List=[]
+    for index, row in df.iterrows():
+        company_List.append(row['Symbol'])
+
+    rsi={}
+    company_List1=company_List[:702]#2190
+    
+    response=service.getHistoryData_in_minute()
+
+    output={}
+    for j in company_List1:
+        if j not in response:
+            continue
+        for i in response[j]:
+            close_price.append(i['ltp'])
+        current_ltp=service.getLiveData()[j][-1]['ltp']
+        
+        close_price.append(current_ltp)
+        rsi_List=(service.calculate_rsi(close_price))
+      
+        if(len(rsi_List)>0):
+            output[j]=rsi_List[len(rsi_List)-1]
+
+
+
+
+    return jsonify({"output":output})
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
